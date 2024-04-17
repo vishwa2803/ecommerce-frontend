@@ -43,26 +43,29 @@ const PriceBox = styled.div`
 
 const Price = styled.div`
   font-size: 1.5rem;
-//   font-weight: bold;
+  //   font-weight: bold;
 `;
 
+
 export default function ProductBox({ _id, title, description, price, images }) {
-  const {addProduct} = useContext(CartContext);
-  const url = '/product/'+_id;
-    return (
+  const { addProduct } = useContext(CartContext);
+  const url = "/product/" + _id;
+  return (
     <ProductWrapper>
       <WhiteBox href={url}>
+  
         <div>
           <img src={images?.[0]} alt="" />
         </div>
+       
       </WhiteBox>
       <ProductInfoBox>
         <Title href={url}>{title}</Title>
         <PriceBox>
           <Price>₹{price}</Price>
-        <Button onClick={() => addProduct(_id)} primary outline>
-          Add to cart
-        </Button>
+          <Button onClick={() => addProduct(_id)} primary outline>
+            Add to cart
+          </Button>
         </PriceBox>
       </ProductInfoBox>
     </ProductWrapper>

@@ -141,6 +141,7 @@ export default function CartPage() {
                   placeholder="Name"
                   value={name}
                   name="name"
+                  required="true"
                   onChange={(e) => setName(e.target.value)}
                 />
                 <Input
@@ -148,6 +149,7 @@ export default function CartPage() {
                   placeholder="Email"
                   value={email}
                   name="email"
+                  required="true"
                   onChange={(e) => setEmail(e.target.value)}
                 />
                 <CityHolder>
@@ -156,6 +158,7 @@ export default function CartPage() {
                     placeholder="City"
                     value={city}
                     name="city"
+                    required="true"
                     onChange={(e) => setCity(e.target.value)}
                   />
                   <Input
@@ -163,6 +166,7 @@ export default function CartPage() {
                     placeholder="Postal Code"
                     value={postalCode}
                     name="postalCode"
+                    required="true"
                     onChange={(e) => setPostalCode(e.target.value)}
                   />
                 </CityHolder>
@@ -171,6 +175,7 @@ export default function CartPage() {
                   placeholder="Street Address"
                   value={streetAddress}
                   name="streetAddress"
+                  required="true"
                   onChange={(e) => setStreetAddress(e.target.value)}
                 />
                 <Input
@@ -178,6 +183,7 @@ export default function CartPage() {
                   placeholder="Country"
                   value={country}
                   name="country"
+                  required="true"
                   onChange={(e) => setCountry(e.target.value)}
                 />
                 <input type="hidden"
