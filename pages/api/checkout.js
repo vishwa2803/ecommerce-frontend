@@ -1,17 +1,19 @@
 import mongooseConnect from "@/lib/mongoose";
 import Order from "@/models/Order";
 import productModel from "@/models/Product";
-
+const stripe = require('stripe')(process.env.STRIPE_SK);
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
-    res.json("should be a POST request");
+    res.status(400).json({ error: "Only POST requests are allowed" });
     return;
   }
-  const { name, email, city, postalCode, country, streetAddress, products } =
+  
+  const { name, email, city, postalCode, country, streetAddress, cartProducts } =
     req.body;
   await mongooseConnect();
-  const productsIds = products.split(',');
+  const productsIds = cartProducts;
+  // console.log(line_items);
   const uniqueIds = [...new Set(productsIds)];
   const productsInfos = await productModel.find({ _id: uniqueIds });
   let line_items = [];
@@ -22,11 +24,12 @@ export default async function handler(req, res) {
     const quantity = productsIds.filter((id) => id === productId)?.length || 0;
     if (quantity > 0 && productInfo) {
       line_items.push({
-        quantity,
+        // product_id: productId, 
+          quantity,
         price_data: {
           currency: "INR",
           product_data: { name: productInfo.title },
-          unit_amount: quantity * productInfo.price,
+          unit_amount: quantity * productInfo.price * 100,
         },
       });
     }
@@ -42,6 +45,23 @@ export default async function handler(req, res) {
     paid:false,
   });
 
-res.json(orderDoc);
-
+  const session = await stripe.checkout.sessions.create({
+    line_items,
+    mode:'payment',
+    customer_email: email,
+    success_url: process.env.PUBLIC_URL + '/cart?success=1',
+    cancel_url: process.env.PUBLIC_URL + '/cart?canceled=1',
+    metadata: {orderId: orderDoc._id.toString(),test:'ok'},
+    billing_address_collection: 'auto',
+    shipping_address_collection: {
+      allowed_countries: ['US', 'CA', 'GB'], // Specify allowed shipping countries
+    },
+    
+  })
+  res.json({
+    url:session.url,
+  })
 }
+
+
+

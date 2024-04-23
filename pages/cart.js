@@ -47,7 +47,7 @@ const ProductImageBox = styled.div`
 `;
 
 export default function CartPage() {
-  const { cartProducts, addProduct, removeProduct } = useContext(CartContext);
+  const { cartProducts, addProduct, removeProduct, clearCart } = useContext(CartContext);
   const [products, setProducts] = useState([]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -55,26 +55,66 @@ export default function CartPage() {
   const [postalCode, setPostalCode] = useState("");
   const [streetAddress, setStreetAddress] = useState("");
   const [country, setCountry] = useState("");
+  const [isSuccess,setIsSuccess] = useState(false);
+
   useEffect(() => {
     if (cartProducts.length > 0) {
       axios.post("/api/cart", { ids: cartProducts }).then((response) => {
         setProducts(response.data);
       });
     } else {
-      setProducts({});
+      setProducts([]);
     }
   }, [cartProducts]);
-
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    if (window?.location.href.includes('success')) {
+      setIsSuccess(true);
+      clearCart();
+    }
+  }, [clearCart]);
   function moreOfThisProduct(id) {
     addProduct(id);
   }
   function lessOfThisProduct(id) {
     removeProduct(id);
   }
+  async function goToPayment(){
+    const response = await axios.post('/api/checkout', {
+      name,email,city,postalCode,streetAddress,country,
+      cartProducts,
+    });
+    if(response.data.url){
+      window.location = response.data.url;
+    }
+  }
   let total = 0;
+  
   for (const productId of cartProducts) {
     const price = products.find(p => p._id === productId)?.price || 0;
     total += price;
+  }
+  
+  
+
+
+  if (isSuccess) {
+    
+    return (
+      <>
+        <Header />
+        <Center>
+          <ColumnWrapper>
+            <Box>
+              <h1>Thanks for your order!</h1>
+              <p>We will email you when your order will be sent.</p>
+            </Box>
+          </ColumnWrapper>
+        </Center>
+      </>
+    );
   }
   return (
     <>
@@ -135,7 +175,6 @@ export default function CartPage() {
           {!!cartProducts?.length && (
             <Box>
               <h2>Order Information</h2>
-              <form method="post" action="/api/checkout">
                 <Input
                   type="text"
                   placeholder="Name"
@@ -186,14 +225,9 @@ export default function CartPage() {
                   required="true"
                   onChange={(e) => setCountry(e.target.value)}
                 />
-                <input type="hidden"
-                 name="products"
-                  value={cartProducts.join(',')}
-                  />
-                <Button black block type="submit">
+                <Button black block onClick={goToPayment}>
                   Continue to payment
                 </Button>
-              </form>
             </Box>
           )}
         </ColumnWrapper>
