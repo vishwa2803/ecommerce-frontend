@@ -22,13 +22,18 @@ useEffect(() => {
     setCartProducts(prev => {
       const pos = prev.indexOf(productId);
       if(pos !== -1){
-        return prev.filter((value,index) => index !== pos);
+        // console.log(pos);
+        const updatedCart = prev.filter((value,index) => index !== pos);
+        localStorage.setItem('cart', JSON.stringify(updatedCart));
+      return updatedCart;
       }
+      
       return prev;
     });
   }
   function clearCart() {
-    setCartProducts([]);
+    // setCartProducts([]);
+    ls.removeItem('cart');
   }
   return (
     <CartContext.Provider value={{ cartProducts, setCartProducts, addProduct, removeProduct,clearCart}}>

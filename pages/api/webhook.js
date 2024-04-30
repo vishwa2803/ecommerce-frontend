@@ -5,7 +5,6 @@ import {Order} from "@/models/Order";
 
 const endpointSecret = "whsec_ee397d27a0895fb5998806ba78364ecfd60c98baa15f573a07751386d948ab80";
 
-
 export default async function handler(req,res) {
   await mongooseConnect();
   const sig = req.headers['stripe-signature'];
@@ -22,10 +21,10 @@ export default async function handler(req,res) {
   // Handle the event
   switch (event.type) {
     case 'checkout.session.completed':
-      const data = event.data.object;
-      const orderId = data.metadata.orderId;
-      const paid = data.payment_status === 'paid';
-      if (orderId && paid) {
+      const session = event.data.object;
+      const orderId = session.metadata.orderId;
+      // const paid = data.payment_status === 'paid';
+      if (orderId && session.payment_status === 'paid') {
         await Order.findByIdAndUpdate(orderId,{
           paid:true,
         })
