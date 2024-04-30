@@ -42,7 +42,7 @@ export default async function handler(req, res) {
     postalCode,
     streetAddress,
     country,
-    paid:false,
+    paid:true,
   });
 
   const session = await stripe.checkout.sessions.create({
@@ -57,7 +57,8 @@ export default async function handler(req, res) {
       allowed_countries: ['US', 'CA', 'GB'], // Specify allowed shipping countries
     },
     
-  })
+  });
+  
   res.json({
     url:session.url,
   })

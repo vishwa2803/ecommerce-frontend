@@ -74,7 +74,7 @@ export default function CartPage() {
       setIsSuccess(true);
       clearCart();
     }
-  }, [clearCart]);
+  }, []);
   function moreOfThisProduct(id) {
     addProduct(id);
   }
@@ -82,14 +82,18 @@ export default function CartPage() {
     removeProduct(id);
   }
   async function goToPayment(){
+    try{
     const response = await axios.post('/api/checkout', {
       name,email,city,postalCode,streetAddress,country,
-      cartProducts,
+      cartProducts
     });
     if(response.data.url){
       window.location = response.data.url;
     }
+  } catch (error) {
+    console.log("Error:",error);
   }
+}
   let total = 0;
   
   for (const productId of cartProducts) {
@@ -100,7 +104,8 @@ export default function CartPage() {
   
 
 
-  if (isSuccess) {
+  if (isSuccess) 
+  {
     
     return (
       <>
@@ -115,7 +120,8 @@ export default function CartPage() {
         </Center>
       </>
     );
-  }
+  } 
+  
   return (
     <>
       <Header />
@@ -123,7 +129,8 @@ export default function CartPage() {
         <ColumnWrapper>
           <Box>
             <h2>Cart</h2>
-            {!cartProducts?.length && <div>Your cart is empty</div>}
+            {!cartProducts?.length && <div>Your cart is empty</div>
+            }
             {products?.length > 0 && (
               <Table>
                 <thead>
