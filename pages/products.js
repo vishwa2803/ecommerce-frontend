@@ -38,6 +38,7 @@ export default function ProductsPage({ products, categories }) {
 
   const handleCategoryChange = async (categoryId) => {
     setSelectedCategory(categoryId);
+  
   //   if (filteredProducts === null) {
   //   try {
   //     const response = await axios.get(`/api/categories`);
