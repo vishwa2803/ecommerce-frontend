@@ -1,3 +1,4 @@
+
 import Center from "@/components/Center";
 import Header from "@/components/Header";
 import ProductsGrid from "@/components/ProductsGrid";
@@ -6,6 +7,8 @@ import productModel from "@/models/Product";
 import styled from "styled-components";
 import CategoryDropdown from "@/components/CategoryDropdown";
 import { useState, useEffect } from "react";
+import categoryModel from "@/models/Category";
+import axios from "axios";
 
 const Title = styled.h1`
   font-size: 1.5em;
@@ -23,41 +26,47 @@ display: flex;
   padding: 0.5rem;
   
 `;
-export default function ProductsPage({ products, categories }) {
+export default function ProductsPage({ initialProducts, initialCategories }) {
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState(initialProducts);
+  const [categories, setCategories] = useState(initialCategories);
+  
 
   useEffect(() => {
-    if (selectedCategory) {
-      const filteredProducts = products.filter(product => product.category.toString() === selectedCategory);
-      setFilteredProducts(filteredProducts);
-    } else {
-      setFilteredProducts(products);
-    }
-  }, [selectedCategory, products]);
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get("/api/categories");
+        setCategories(response.data);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    const filterProducts = () => {
+      if (selectedCategory) {
+        // Find all categories that are children of the selected category
+        const subCategories = categories.filter(cat => cat.parent === selectedCategory).map(cat => cat._id);
+        // Include the selected category itself
+        const allCategoriesToMatch = [selectedCategory, ...subCategories];
+
+        // Filter products based on category and subcategories
+        const filtered = initialProducts.filter(product => 
+          allCategoriesToMatch.includes(product.category.toString())
+        );
+        setFilteredProducts(filtered);
+      } else {
+        setFilteredProducts(initialProducts);
+      }
+    };
+    filterProducts();
+  }, [selectedCategory, categories, initialProducts]);
 
   const handleCategoryChange = async (categoryId) => {
     setSelectedCategory(categoryId);
-  
-  //   if (filteredProducts === null) {
-  //   try {
-  //     const response = await axios.get(`/api/categories`);
-  //     const categories = response.data;
-  //     const selectedCategory = categories.find(category => category._id === categoryId);
-  //     if (selectedCategory) {
-  //       const filteredProducts = products.filter(product => {
-  //         return product.category.toString() === selectedCategory._id || product.category.toString() === categories.parent;
-  //       });
-  //       setFilteredProducts(filteredProducts);
-  //     } else {
-  //       console.log("No category selected");
-  //       setFilteredProducts([]);
-  //     }
-  //   }  catch (error) {
-  //     console.error("Error fetching categories:", error);
-  //     setFilteredProducts([]);
-  //   }
-  // }
   };
 
   return (
@@ -79,16 +88,12 @@ export default function ProductsPage({ products, categories }) {
 export async function getServerSideProps() {
   await mongooseConnect();
   const products = await productModel.find({}, 'title description category price images properties', { sort: { _id: -1 } });
-  const categoriesSet = new Set();
-  products.forEach(product => {
-    categoriesSet.add(product.category.toString()); 
-  });
-  const categories = Array.from(categoriesSet);
+  const categories = await categoryModel.find({}, 'name parent');
 
   return {
     props: {
-      products: JSON.parse(JSON.stringify(products)),
-      categories
+      initialProducts: JSON.parse(JSON.stringify(products)),
+      initialCategories: JSON.parse(JSON.stringify(categories)),
     },
   };
 }
